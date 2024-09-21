@@ -18,5 +18,5 @@ if [ ! -f "$input_file" ]; then
 fi
 
 while read -r port ip; do
-  nxc $protocol $ip -u $user -p $password --port $port
+  nxc $protocol $ip -u $user -p $password --port $port $auth # add or remove flags as needed
 done < "$input_file"
