@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Check if the user has provided a file as an argument
+# File Input Format Expected:
+# <port> <IP>
 if [ -z "$4" ]; then
   echo "Usage: $0 <input_file> <protocol> <user/userList> <password/passwordList>"
   exit 1
