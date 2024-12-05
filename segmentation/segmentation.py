@@ -46,13 +46,13 @@ def get_ip_with_command(command):
 
 def ping_sweep(segment, mask):
     print(f"\n{Colors.BLUE}[+] Performing ping sweep on {segment}/{mask}{Colors.RESET}")
-    command = f"nmap -sn {segment}/{mask} -oN ping_sweep_{segment.replace('/', '_')}_{mask}.nmap"
+    command = f"nmap -sn {segment}/{mask} -oN ping_sweep_{segment.replace('/', '_')}_{mask}.out"
     response = run_command(command)
     if response:
-        print(f"{Colors.GREEN}[+] Ping sweep completed. Results saved in ping_sweep_{segment.replace('/', '_')}_{mask}.nmap{Colors.RESET}")
+        print(f"{Colors.GREEN}[+] Ping sweep completed. Results saved in ping_sweep_{segment.replace('/', '_')}_{mask}.out{Colors.RESET}")
 
 def service_scan_single_port(network, mask, port, service_name):
-    output_file = f"service-{service_name}-{network.replace('/', '_')}-{mask}.nmap"
+    output_file = f"service-{service_name}-{network.replace('/', '_')}-{mask}.out"
     print(f"{Colors.BLUE}[+] Scanning for {service_name} (port {port}) on {network}/{mask}{Colors.RESET}")
     command = f"nmap -Pn -p {port} {network}/{mask} -oN {output_file}"
     response = run_command(command)
