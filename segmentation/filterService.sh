@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NMAP_FILES_DIR="." 
+FILES_DIR="." 
 
 if [[ -z "$1" ]]; then
   echo "Usage: $0 <service>"
@@ -10,12 +10,12 @@ fi
 
 service="$1"
 
-nmap_file=$(find "$NMAP_FILES_DIR" -type f -name "service-${service}-*.nmap")
+file=$(find "$FILES_DIR" -type f -name "*.out")
 
-if [[ -z "$nmap_file" ]]; then
+if [[ -z "$file" ]]; then
   echo "[-] No matching .nmap file found for service: $service"
   exit 1
 fi
 
 echo "[+] Filtering results for service: $service"
-grep "open" -B 4 "$nmap_file" || echo "[-] No open ports found in $nmap_file"
+grep "open" -B 4 "$file" || echo "[-] No open ports found in $file"
