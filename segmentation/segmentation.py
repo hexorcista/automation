@@ -32,12 +32,16 @@ def get_ip_with_command(command):
             parts = line.split()
             ip_with_netmask = parts[1]
             ip, prefix = ip_with_netmask.split("/")
-            return ip, str(ipaddress.IPv4Network(f"0.0.0.0/{prefix}").netmask)
+            return ip, int(prefix)
         elif command == "ifconfig" and "inet " in line and not "127.0.0.1" in line:
             parts = line.split()
             ip = parts[1]
             mask = parts[3] if len(parts) > 3 else None
-            return ip, mask
+            if mask and mask.startswith("0x"):  # Convert hexadecimal mask to CIDR prefix
+                mask = ".".join(str(int(mask[i:i+2], 16)) for i in range(2, len(mask), 2))
+            if mask:
+                cidr_prefix = sum(bin(int(octet)).count("1") for octet in mask.split("."))
+                return ip, cidr_prefix
     return None, None
 
 def ping_sweep(segment, mask):
@@ -71,6 +75,14 @@ def scan_network(base_ip, mask, services):
     for service_name, port in services.items():
         service_scan_single_port(str(network.network_address), mask, port, service_name)
 
+def nxcCmd(base_ip, mask, protocol):
+    print(f"{Colors.BLUE}[+] Executing: nxc {protocol} {base_ip}/{mask} {Colors.RESET}")
+    output_file = f"nxc-{protocol}-{base_ip}-{mask}.out"
+    command = f"nxc {protocol} {base_ip}/{mask} | tee {output_file}"
+    response = run_command(command)
+    if response:
+        print(f"{Colors.GREEN}[+] Results saved in {output_file}{Colors.RESET}")
+
 def main():
     print(f"{Colors.BLUE}[+] Choose the command to fetch the IP address:{Colors.RESET}")
     print("    1. ip a")
@@ -93,6 +105,14 @@ def main():
 
     print(f"{Colors.GREEN}[+] Current IP: {ip}{Colors.RESET}")
     print(f"{Colors.GREEN}[+] Netmask: {netmask}{Colors.RESET}")
+
+    # Calculate the network segment
+    try:
+        network = ipaddress.IPv4Network(f"{ip}/{netmask}", strict=False)
+        network_segment = str(network.network_address)
+    except Exception as e:
+        print(f"{Colors.RED}[-] Failed to calculate network segment: {e}{Colors.RESET}")
+        sys.exit(1)
 
     services = {
         "http": 80,
@@ -129,13 +149,34 @@ def main():
         "jenkins": 8080,
     }
 
+    services_nxc = ["smb", "ssh", "ldap", "ftp", "wmi", "winrm", "rdp", "vnc", "mssql", "nfs"]
+
     print(f"\n{Colors.BLUE}[+] Starting scans for /24 subnet...{Colors.RESET}")
-    scan_network(ip, 24, services)
+    scan_network(network_segment, 24, services)
+
+    choicenxc = input(f"\n{Colors.YELLOW}[?] Do you want to use nxc to test? (yes/no): {Colors.RESET}").strip().lower()
+    if choicenxc == "yes":
+        choicenxc2 = input(f"\n{Colors.YELLOW}[?] Do you want to test /24(24), /16(16), or both(both)? {Colors.RESET}").strip().lower()
+        if choicenxc2 == "24":
+            mask = 24
+            for protocol in services_nxc:
+                nxcCmd(network_segment, mask, protocol)
+        elif choicenxc2 == "16":
+            mask = 16
+            for protocol in services_nxc:
+                nxcCmd(network_segment, mask, protocol)
+        elif choicenxc2 == "both":
+            for mask in [24, 16]:
+                for protocol in services_nxc:
+                    nxcCmd(network_segment, mask, protocol)
+        else:
+            print(f"{Colors.RED}Invalid choice. Exiting.{Colors.RESET}")
+            sys.exit(1)
 
     choice = input(f"\n{Colors.YELLOW}[?] Do you want to expand to /16 for deeper scans? (yes/no): {Colors.RESET}").strip().lower()
     if choice == "yes":
         print(f"\n{Colors.BLUE}[+] Starting scans for /16 subnet...{Colors.RESET}")
-        scan_network(ip, 16, services)
+        scan_network(network_segment, 16, services)
     else:
         print(f"{Colors.YELLOW}[-] Skipping /16 scan.{Colors.RESET}")
 
