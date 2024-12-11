@@ -106,7 +106,7 @@ def main():
 
     choicenxc = input(f"\n{Colors.YELLOW}[?] Do you want to use nxc to test by services? (yes/no): {Colors.RESET}").strip().lower()
     if choicenxc == "yes":
-        choicenxc2 = input(f"\n{Colors.YELLOW}[?] Do you want to test /24(24), /16(16), or both(both)? {Colors.RESET}").strip().lower()
+        choicenxc2 = input(f"\n{Colors.YELLOW}[?] Do you want to test /24(24), /16(16)? {Colors.RESET}").strip().lower()
         if choicenxc2 == "24":
             mask = 24
             for protocol in services_nxc:
@@ -115,10 +115,6 @@ def main():
             mask = 16
             for protocol in services_nxc:
                 nxcCmd(network_segment, mask, protocol)
-        elif choicenxc2 == "both":
-            for mask in [24, 16]:
-                for protocol in services_nxc:
-                    nxcCmd(network_segment, mask, protocol)
         else:
             print(f"{Colors.RED}Invalid choice. Exiting.{Colors.RESET}")
             sys.exit(1)
