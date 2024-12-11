@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO: improve
 
 FILES_DIR="." 
 
