@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -ne 3 ]]; then
     echo "Usage: $0 <IP_list_file> <output_file>"
     exit 1
 fi
 
 INPUT_FILE="$1"
 OUTPUT_FILE="$2"
+PROTOCOL="$3"
 
 if [[ ! -f "$INPUT_FILE" ]]; then
     echo "Error: Input file '$INPUT_FILE' not found."
@@ -18,7 +19,7 @@ fi
 while IFS= read -r IP; do
     echo "Processing IP: $IP"
     
-    crackmapexec smb "$IP" >> "$OUTPUT_FILE"
+    nxc "$3" "$IP" >> "$OUTPUT_FILE"
     
     echo "Results for $IP saved."
 done < "$INPUT_FILE"
