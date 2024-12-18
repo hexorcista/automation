@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -ne 3 ]]; then
-    echo "Usage: $0 <IP_list_file> <output_file>"
+    echo "Usage: $0 <IP_list_file> <output_file> <protocol>"
     exit 1
 fi
 
@@ -14,12 +14,14 @@ if [[ ! -f "$INPUT_FILE" ]]; then
     exit 1
 fi
 
-> "$OUTPUT_FILE"
-
 while IFS= read -r IP; do
     echo "Processing IP: $IP"
-    
-    nxc "$3" "$IP" >> "$OUTPUT_FILE"
+
+    echo "SMB scan results for $IP:" >> "$OUTPUT_FILE"
+
+    if ! crackmapexec smb "$IP" >> "$OUTPUT_FILE" 2>&1; then
+        echo "Error scanning $IP. Skipping..." >> "$OUTPUT_FILE"
+    fi
     
     echo "Results for $IP saved."
 done < "$INPUT_FILE"
